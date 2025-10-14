@@ -110,43 +110,43 @@ Title
 
 Published 
 
-2015-07-13
+2023-10-03
 
 Title 
 
-[ CP Image Store with Slideshow <= 1.0.6 - Purchase ID Brute Force Prevention ](/vulnerability/47033831-eb37-4bfd-8ca9-906ded30e7f8/)
+[ Captcha/Honeypot for Contact Form 7 < 1.11.4 - Captcha Bypass ](/vulnerability/793961d3-d4fa-46eb-95bf-dbbb4507e652/)
 
 Published 
 
-2017-01-26
+2017-01-11
 
 Title 
 
-[ WordPress 4.2.0-4.7.1 - Press This UI Available to Unauthorised Users ](/vulnerability/c448e613-6714-4ad7-864f-77659b4da893/)
+[ WordPress 4.7 - User Information Disclosure via REST API ](/vulnerability/ec8c295f-0ab4-4ab9-9a3a-38e9d64e12d3/)
 
 Published 
 
-2022-10-31
+2020-01-21
 
 Title 
 
-[ WP-Polls < 2.76.0 - IP Validation Bypass ](/vulnerability/c1896ab9-9585-40e2-abbf-ef5153b3c6b2/)
+[ WordPress <= 5.2.3 - Hardening Bypass ](/vulnerability/378d7df5-bce2-406a-86b2-ff79cd699920/)
 
 Published 
 
-2014-08-01
+2019-04-10
 
 Title 
 
-[ WordPress 3.7.1 & 3.8.1 - Privilege Escalation ](/vulnerability/40586ac9-eb74-4663-850f-b84b14e563de/)
+[ Yuzo Related Posts < 5.12.94 - Unauthenticated Call Any Action or Update Any Option ](/vulnerability/babc4a84-636d-425e-9915-ea33542a9e77/)
 
 Published 
 
-2024-03-29
+2023-05-30
 
 Title 
 
-[ VS Contact Form < 14.8 - CAPTCHA Bypass ](/vulnerability/09b6eaf9-e125-4526-ad8e-20928ec3374a/)
+[ Jetpack < 12.1.1 - Author+ Arbitrary File Manipulation via API ](/vulnerability/52d221bd-ae42-435d-a90a-60a5ae530663/)
 
 ![](https://wpscan.com/wp-content/uploads/2023/10/wpscan-logo-dark.png?w=246)
 
@@ -234,6 +234,6 @@ Sign me up
 
 
 
-![](https://pixel.wp.com/g.gif?blog=221720208&v=wpcom&tz=-4&user_id=0&arch_home=1&subd=a8cteam5105&host=wpscan.com&ref=&rand=0.07484518227274795)
+![](https://pixel.wp.com/g.gif?blog=221720208&v=wpcom&tz=-4&user_id=0&arch_home=1&subd=a8cteam5105&host=wpscan.com&ref=&rand=0.5479731817375657)
 
 Notifications

@@ -65,12 +65,14 @@ def genRb(markdown_content: str, debug: bool = False, FirstTry: bool = True):
     # ==== 呼叫 Gemini API 生成 Ruby 程式碼 ====
     response = model.generate_content(prompt)
     ruby_code = response.text  # genai 套件回傳的文字
-    urls_list = re.findall(r'https?://[^\s,|]+', ruby_code)
-    print(urls_list)
-    if urls_list:
+    next_url = None
+    match = re.match(r'(https?://\S+)', ruby_code)
+    if match:
+        next_url = match.group(1)
+    print(next_url)
+    if next_url:
         with open("next_url.txt", "w", encoding="utf-8") as f:
-            for url in urls_list:
-                f.write(url + "\n")
+            f.write(next_url + "\n")
     if debug:
         print("=== Gemini Response ===")
         print(ruby_code)
