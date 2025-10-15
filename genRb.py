@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from ast import pattern
 from pathlib import Path
 import argparse
 import os
@@ -66,13 +67,15 @@ def genRb(markdown_content: str, debug: bool = False, FirstTry: bool = True):
     response = model.generate_content(prompt)
     ruby_code = response.text  # genai 套件回傳的文字
     next_url = None
-    match = re.match(r'(https?://\S+)', ruby_code)
+    pattern = r'^(https?://[^\s\'"<>)]+(?:\s+https?://[^\s\'"<>)]+)*)'
+
+    match = re.match(pattern, ruby_code)
     if match:
-        next_url = match.group(1)
-    print(next_url)
+        next_url = match.group(1).split()  # 以空白分開多個網址
+        print(next_url)
     if next_url:
         with open("next_url.txt", "w", encoding="utf-8") as f:
-            f.write(next_url + "\n")
+            f.write("\n".join(next_url) + "\n")
     if debug:
         print("=== Gemini Response ===")
         print(ruby_code)

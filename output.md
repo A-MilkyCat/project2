@@ -2,12 +2,12 @@ Skip to content
 
 [](/)
 
-  * [Features](/features/)
-  * [Pricing](/pricing/)
+  * [Features](https://a8cteam5105.wordpress.com/features/)
+  * [Pricing](https://a8cteam5105.wordpress.com/pricing/)
   * Solutions
     * [Status](https://status.wpscan.com/)
     * [API Details](/api)
-    * [CLI Scanner](/wordpress-cli-scanner/)
+    * [CLI Scanner](https://a8cteam5105.wordpress.com/wordpress-cli-scanner/)
   * Vulnerabilities
     * [Themes](/themes)
     * [WordPress](/wordpresses)
@@ -17,8 +17,8 @@ Skip to content
     * [Leaderboard](/leaderboard)
   * Resources
     * [Blog](/blog)
-    * [Enterprise Features](/enterprise-customers-features/)
-    * [How to Install WPScan](/how-to-install-wpscan/)
+    * [Enterprise Features](https://a8cteam5105.wordpress.com/enterprise-customers-features/)
+    * [How to Install WPScan](https://a8cteam5105.wordpress.com/how-to-install-wpscan/)
     * [WPScan Glossary](/wpscan-glossary)
     * [2024 Website Threat Report](https://wpscan.com/2023-website-threat-report/)
 
@@ -44,7 +44,7 @@ https://github.com/amartinsec/CVE-2020-12800/blob/master/exploit.py
 
 ### Affects Plugins
 
-[ ![Plugin icon](https://s0.wp.com/wp-content/themes/a8c/wpscan/assets/img/plugin-icon.svg) drag-and-drop-multiple-file-upload-contact-form-7 ](/plugin/drag-and-drop-multiple-file-upload-contact-form-7/)
+[ ![Plugin icon](https://s0.wp.com/wp-content/themes/a8c/wpscan/assets/img/plugin-icon.svg) drag-and-drop-multiple-file-upload-contact-form-7 ](https://a8cteam5105.wordpress.com/plugin/drag-and-drop-multiple-file-upload-contact-form-7/)
 
 ![](https://s0.wp.com/wp-content/themes/a8c/wpscan/assets/img/checkmark-green-alt.svg) Fixed in 1.3.3.3 
 
@@ -86,7 +86,7 @@ Yes
 
 WPVDB ID 
 
-[53e47e67-c8c9-45a9-9a9c-da52c37047bf](/vulnerability/53e47e67-c8c9-45a9-9a9c-da52c37047bf/)
+[53e47e67-c8c9-45a9-9a9c-da52c37047bf](https://a8cteam5105.wordpress.com/vulnerability/53e47e67-c8c9-45a9-9a9c-da52c37047bf/)
 
 ### Timeline
 
@@ -110,43 +110,43 @@ Title
 
 Published 
 
-2023-10-03
+2023-03-06
 
 Title 
 
-[ Captcha/Honeypot for Contact Form 7 < 1.11.4 - Captcha Bypass ](/vulnerability/793961d3-d4fa-46eb-95bf-dbbb4507e652/)
+[ Formidable Forms < 6.1 - IP Spoofing ](https://a8cteam5105.wordpress.com/vulnerability/a281f63f-e295-4666-8a08-01b23cd5a744/)
 
 Published 
 
-2017-01-11
+2019-01-25
 
 Title 
 
-[ WordPress 4.7 - User Information Disclosure via REST API ](/vulnerability/ec8c295f-0ab4-4ab9-9a3a-38e9d64e12d3/)
+[ Total Donations - Update Arbitrary WordPress Option Values ](https://a8cteam5105.wordpress.com/vulnerability/6e6342b0-82ca-4f5f-8b59-92ec3bdf1d02/)
 
 Published 
 
-2020-01-21
+2024-04-15
 
 Title 
 
-[ WordPress <= 5.2.3 - Hardening Bypass ](/vulnerability/378d7df5-bce2-406a-86b2-ff79cd699920/)
+[ Zero Spam < 5.5.7 - Spam Protection Bypass ](https://a8cteam5105.wordpress.com/vulnerability/e8f53e21-dcba-4a99-8e95-8b9d28512304/)
 
 Published 
 
-2019-04-10
+2015-02-22
 
 Title 
 
-[ Yuzo Related Posts < 5.12.94 - Unauthenticated Call Any Action or Update Any Option ](/vulnerability/babc4a84-636d-425e-9915-ea33542a9e77/)
+[ WP Ultimate CSV Importer <= 3.6.74 - Database Table Export ](https://a8cteam5105.wordpress.com/vulnerability/fc4865d1-00b9-4594-99d2-e2a3fc0d3951/)
 
 Published 
 
-2023-05-30
+2018-02-08
 
 Title 
 
-[ Jetpack < 12.1.1 - Author+ Arbitrary File Manipulation via API ](/vulnerability/52d221bd-ae42-435d-a90a-60a5ae530663/)
+[ Swape Theme - Authentication Bypass and Stored XSS ](https://a8cteam5105.wordpress.com/vulnerability/46ee3aa5-947c-40a4-8572-aa2177230aef/)
 
 ![](https://wpscan.com/wp-content/uploads/2023/10/wpscan-logo-dark.png?w=246)
 
@@ -155,8 +155,8 @@ Title
   * [WordPress](/wordpresses)
   * [Plugins](/plugins)
   * [Themes](/themes)
-  * [Our Stats](/statistics/)
-  * [Submit vulnerabilities](/submit/)
+  * [Our Stats](https://a8cteam5105.wordpress.com/statistics/)
+  * [Submit vulnerabilities](https://a8cteam5105.wordpress.com/submit/)
 
 
 
@@ -216,7 +216,7 @@ endeavor
 
     * [ ![](https://wpscan.com/wp-content/uploads/2023/08/cropped-83c25-favicon.png?w=50) WPScan ](https://wpscan.com)
 
-Join 30,424 other subscribers
+Join 30,426 other subscribers
 
 Sign me up 
 
@@ -234,6 +234,6 @@ Sign me up
 
 
 
-![](https://pixel.wp.com/g.gif?blog=221720208&v=wpcom&tz=-4&user_id=0&arch_home=1&subd=a8cteam5105&host=wpscan.com&ref=&rand=0.5479731817375657)
+![](https://pixel.wp.com/g.gif?blog=221720208&v=wpcom&tz=-4&user_id=0&arch_home=1&subd=a8cteam5105&host=wpscan.com&ref=&rand=0.40634610883647393)
 
 Notifications

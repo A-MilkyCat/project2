@@ -1,1 +1,6 @@
 https://github.com/amartinsec/CVE-2020-12800/blob/master/exploit.py
+https://www.exploit-db.com/exploits/48520
+https://www.rapid7.com/db/modules/#exploit/multi/http/wp_dnd_mul_file_rce
+https://packetstormsecurity.com/files/#157837/
+https://packetstormsecurity.com/files/#157951/
+https://github.com/amartinsec/CVE-2020-12800
