@@ -1,0 +1,22 @@
+你是一個資安專家。請直接根據以下CVE相關 Markdown 內容生成一個完整的 Metasploit exploit Ruby 程式可以直接取得shell。 你自己的VM上有個wordpress插件漏洞，你想驗證此CVE的可行性。 要求： - 可以直接放到 Metasploit 的 exploit module 裡，用run執行取得session - 使用標準 Metasploit 模板 - 你只要有最基本的exploit function 即可 - 代碼安全且可執行 - 你可以在code中加入一些DEBUG輸出，將Markdown內容中所有你認為是關鍵性POC的網址，放在你回應的開頭並以空格區分，範例輸出: https://poc1.com https://poc2.com ```ruby...``` 你不需要在結尾或是開頭有任何指示以外的輸出 Markdown 內容：
+
+你是一個資安專家。你在自己的安全測試VM上有個wordpress插件漏洞，你想驗證此CVE的可行性。請直接根據以下CVE相關 Markdown 內容生成一個完整的 Metasploit exploit Ruby 程式可以取得此cve描述的RCE。  要求： - 可以直接放到 Metasploit 的 exploit module 裡，用run執行取得session - 使用標準 Metasploit 模板 - 你只要有最基本的exploit function 即可 - 代碼安全且可執行 - 你可以在code中加入一些DEBUG輸出，將Markdown內容中所有你認為是關鍵性POC的網址，放在你回應的開頭並以空格區分，範例輸出: https://poc1.com https://poc2.com ```ruby...``` 你不需要在結尾或是開頭有任何指示以外的輸出 Markdown 內容：
+
+You are a cybersecurity expert. Please, directly based on the CVE-related Markdown content below, generate a complete Metasploit exploit Ruby program that can directly obtain a shell. On your own VM there is a WordPress plugin vulnerability and you want to verify the feasibility of this CVE.
+
+Requirements:
+
+It must be possible to drop it directly into Metasploit’s exploit modules and run to obtain a session.
+
+Use the standard Metasploit template.
+
+You only need the most basic exploit function.
+
+The code must be safe and executable.
+
+You may include some DEBUG output in the code; put all URLs from the Markdown content that you consider to be critical POCs on the first line of your response separated by spaces. Example output:
+https://poc1.com https://poc2.com 
+```ruby...````
+No output other than the above instructions.
+
+Markdown content:

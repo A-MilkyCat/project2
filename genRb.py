@@ -14,6 +14,7 @@ except Exception as e:
     print("import error: ", e)
     raise
 
+MAXIMUM_URLS = 3
 DEFAULT_HTML_PATH = Path("output.html")
 DEFAULT_OUTPUT_PATH = Path("output.md")
 exploit_filename = "auto_generated_exploit.rb"
@@ -66,6 +67,8 @@ def genRb(markdown_content: str, debug: bool = False, FirstTry: bool = True):
     # ==== 呼叫 Gemini API 生成 Ruby 程式碼 ====
     response = model.generate_content(prompt)
     ruby_code = response.text  # genai 套件回傳的文字
+    if ruby_code[0] != 'h': # wrong format 
+        return True
     next_url = None
     pattern = r'^(https?://[^\s\'"<>)]+(?:\s+https?://[^\s\'"<>)]+)*)'
 
@@ -93,6 +96,7 @@ def genRb(markdown_content: str, debug: bool = False, FirstTry: bool = True):
             print(f"[+] Exploit generated and saved to: {exploit_path}")
         else:
             print("Warning: 無法從生成的內容中提取 Ruby 程式碼，將寫入完整回應內容。")
+    return False
 
 def main():
     parser = argparse.ArgumentParser(
@@ -110,22 +114,34 @@ def main():
     with open("next_url.txt", "r", encoding="utf-8") as f:
         urls = [line.strip() for line in f if line.strip()]
     print(f"Read {len(urls)} URLs from next_url.txt")
-    for url in urls:        print("  ", url)
 
-    url = urls[0] if urls else None
-    html_out = args.html_out
-    if not (url.startswith("http://") or url.startswith("https://")):
-        raise ValueError(f"Invalid URL: {url}")
+    for url in urls:
+        print("  ", url)
+    md = ""
+    t = 0 
+    for url in urls:
+        if t >= MAXIMUM_URLS:
+            break
+        # url = urls[0] if urls else None
+        html_out = args.html_out
+        if not (url.startswith("http://") or url.startswith("https://")):
+            # raise ValueError(f"Invalid URL: {url}")
+            print(f"Skipping invalid URL: {url}")
+            continue
 
-    html = fetch_html(url, html_out, args.debug)
-    if not html:
-        raise ValueError("Failed to fetch HTML")
-    
-    md = html_to_markdown(html)
+        html = fetch_html(url, html_out, args.debug)
+        if not html:
+            print(f"Skipping URL due to fetch error: {url}")
+            continue
+        #     raise ValueError("Failed to fetch HTML")
+        
+        md += "Target url " + url + ':\n' + html_to_markdown(html)
+        t += 1
+
     md_out.write_text(md, encoding="utf-8") # save md file
     print(f"Wrote {len(md)} characters to {md_out}")
-    
-    genRb(md, debug=args.debug)
+    while genRb(md, debug=args.debug):
+        print("Retrying...")
     print("Done.")
 
 

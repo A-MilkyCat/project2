@@ -1,6 +1,6 @@
-https://github.com/amartinsec/CVE-2020-12800/blob/master/exploit.py
-https://www.exploit-db.com/exploits/48520
-https://www.rapid7.com/db/modules/#exploit/multi/http/wp_dnd_mul_file_rce
-https://packetstormsecurity.com/files/#157837/
-https://packetstormsecurity.com/files/#157951/
-https://github.com/amartinsec/CVE-2020-12800
+https://ypcs.fi/misc/code/pocs/2020-wp-file-manager-v67.py
+https://blog.nintechnet.com/critical-zero-day-vulnerability-fixed-in-wordpress-file-manager-700000-installations/
+https://www.wordfence.com/blog/2020/09/700000-wordpress-users-affected-by-zero-day-vulnerability-in-file-manager-plugin/
+https://seravo.com/blog/0-day-vulnerability-in-wp-file-manager/
+https://blog.sucuri.net/2020/09/critical-vulnerability-file-manager-affecting-700k-wordpress-websites.html
+https://twitter.com/w4fz5uck5/status/1298402173554958338
