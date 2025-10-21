@@ -1,4 +1,4 @@
-https://ypcs.fi/misc/code/pocs/2020-wp-file-manager-v67.py
+https://wpscan.com/vulnerability/e528ae38-72f0-49ff-9878-922eff59ace9
 https://blog.nintechnet.com/critical-zero-day-vulnerability-fixed-in-wordpress-file-manager-700000-installations/
 https://www.wordfence.com/blog/2020/09/700000-wordpress-users-affected-by-zero-day-vulnerability-in-file-manager-plugin/
 https://seravo.com/blog/0-day-vulnerability-in-wp-file-manager/
