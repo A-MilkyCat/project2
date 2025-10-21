@@ -14,7 +14,7 @@ except Exception as e:
     print("import error: ", e)
     raise
 
-MAXIMUM_URLS = 3
+MAXIMUM_URLS = 1
 DEFAULT_HTML_PATH = Path("output.html")
 DEFAULT_OUTPUT_PATH = Path("output.md")
 exploit_filename = "auto_generated_exploit.rb"
@@ -40,7 +40,7 @@ def extract_code_best_effort(text: str) -> str | None:
 
     return None
 
-def genRb(markdown_content: str, debug: bool = False, FirstTry: bool = True):
+def genRb(markdown_content: str, debug: bool = False, FirstTry: bool = True, prompt_index: int = 0) -> bool:
     GEMINI_API_KEY = os.getenv("GEMINI_KEY")
     if not GEMINI_API_KEY:
         raise ValueError("Please set GEMINI_KEY environment variable")
@@ -54,14 +54,15 @@ def genRb(markdown_content: str, debug: bool = False, FirstTry: bool = True):
     prompt = ""
     if FirstTry is True:
         with open('InitPrompt.txt', 'r', encoding='utf-8') as f:
-            prompt = f.read()
+            prompt = f.read().splitlines()[prompt_index - 1]
+            print("Using initial prompt:", prompt)
     else:
         with open(exploit_path, 'r', encoding='utf-8') as f:
             existing_code = f.read()
         with open('errorMsg.txt', 'r', encoding='utf-8') as f:
             error_msg = f.read()
         with open('retryPrompt.txt', 'r', encoding='utf-8') as f:
-            prompt = existing_code + "\n Error msg: " + error_msg + "\n" + f.read()
+            prompt = existing_code + "\n Error msg: " + error_msg + "\n" + f.read().splitlines()[prompt_index - 1]
     prompt += markdown_content
 
     # ==== 呼叫 Gemini API 生成 Ruby 程式碼 ====
@@ -106,8 +107,16 @@ def main():
     parser.add_argument("--html-out", type=Path, default=DEFAULT_HTML_PATH, help="Path to save HTML")
     parser.add_argument("--md-out", type=Path, default=DEFAULT_OUTPUT_PATH, help="Path to save Markdown")
     parser.add_argument("--debug", action="store_true", help="Enable debug mode")
+    parser.add_argument(
+        "-p", "--pick",
+        type=int,
+        metavar="N",
+        help="Select an index number (e.g. -p 5). 1-based index by convention.",
+        default=None,
+        required=True
+    )
     args = parser.parse_args()
-
+    prompt_index = args.pick
     if args.debug:
         print("Debug mode enabled.")
     md_out = args.md_out
@@ -140,7 +149,7 @@ def main():
 
     md_out.write_text(md, encoding="utf-8") # save md file
     print(f"Wrote {len(md)} characters to {md_out}")
-    while genRb(md, debug=args.debug):
+    while genRb(md, debug=args.debug, prompt_index=prompt_index):
         print("Retrying...")
     print("Done.")
 
