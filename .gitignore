@@ -1,6 +1,4 @@
-ouput.md
-output.html
-test.py
-test.rb
-difprompt.txt
-./exploit_modules/
+__pycache__/
+/data/*
+!/data/.gitkeep
+/exploit_modules/
