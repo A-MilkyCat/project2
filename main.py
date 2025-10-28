@@ -13,12 +13,13 @@ def main():
     parser.add_argument("--debug", action="store_true", help="Enable debug mode")
     parser.add_argument("-p", "--pick", type=int, metavar="N", help="Select an index number (1-based).", required=True)
     parser.add_argument("--target-cve", action="append", help="Target CVE(s) to search for (can specify multiple).", default=["2020-25213"])
+    #["2020-25213", "2024-5932", "2025-3102", "2020-12800"]
     args = parser.parse_args()
 
     if not OUTPUT_JSON.exists():
         print(f"Error: {OUTPUT_JSON} not found.")
         sys.exit(1)
-
+    
     with OUTPUT_JSON.open("r", encoding="utf-8-sig") as f:
         data = json.load(f)
 
