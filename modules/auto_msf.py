@@ -29,7 +29,7 @@ import pexpect
 import io
 
 # 可調整的參數
-DEFAULT_MODULE = "cve1_md1_test2"
+DEFAULT_MODULE = "cve1_md3_test2"
 DEFAULT_RHOSTS = "192.168.1.114"
 PROMPT_REGEX = r"msf.*>\s*$"
 LOG_PATH = os.path.expanduser("~/.msf4/logs/framework.log")
