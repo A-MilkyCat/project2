@@ -12,7 +12,7 @@ Metasploit
 
 ### Clone repository
 ```
-git clone <REPO_URL> project_root
+git clone https://github.com/A-MilkyCat/project2.git project_root
 cd project_root
 ```
 
@@ -27,4 +27,4 @@ Basic run example:
 ```
 python3 main.py -p 1
 ```
--p selects which prompt file to use from the prompts/ directory.
+-p selects which prompt index (line) to use from the prompts/init_prompt.txt
