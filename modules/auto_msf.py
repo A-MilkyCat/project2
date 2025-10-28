@@ -29,7 +29,7 @@ import pexpect
 import io
 
 # 可調整的參數
-DEFAULT_MODULE = "auxiliary/scanner/ssh/ssh_version"
+DEFAULT_MODULE = "cve1_md1_test2"
 DEFAULT_RHOSTS = "192.168.1.114"
 PROMPT_REGEX = r"msf.*>\s*$"
 LOG_PATH = os.path.expanduser("~/.msf4/logs/framework.log")
@@ -160,8 +160,8 @@ def run_auto_msf(module, rhosts, timeout=120):
         child.sendline(f"set RHOSTS {rhosts}")
         child.expect(re.compile(PROMPT_REGEX))
 
-        print("[*] show options")
-        child.sendline("show options")
+        print("[*] run exploit")
+        child.sendline("run")
         child.expect(re.compile(PROMPT_REGEX))
 
         # 若需要，你可以在此加入其他指令（例如 run 或 check），但本範例避免執行 exploit
