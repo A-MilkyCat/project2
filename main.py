@@ -5,7 +5,7 @@ from pathlib import Path
 import sys
 import shutil
 
-from config import OUTPUT_JSON, NEXT_URL_TXT, MODULE, RHOSTS, RETRYTIME, EXPLOIT_PATH, MSF_DIR
+from config import OUTPUT_JSON, NEXT_URL_TXT, MODULE, RHOSTS, RETRYTIME, EXPLOIT_PATH, MSF_DIR, LHOST
 from modules.exploit_generator import exec_genrb_from_main
 from modules.auto_msf import run_auto_msf
 
@@ -52,11 +52,11 @@ def main():
             exec_genrb_from_main(retry=args.retry, enable_debug=args.debug, prompt_index=args.pick)
             retrytimes = 0
             shutil.copy2(EXPLOIT_PATH, MSF_DIR)
-            retvalue = run_auto_msf(module=MODULE, rhosts=RHOSTS)
-            while retvalue != 0 or retrytimes < RETRYTIME:
+            retvalue = run_auto_msf(module=MODULE, rhosts=RHOSTS, lhost=LHOST)
+            while retvalue != 0 and retrytimes < RETRYTIME:
                 exec_genrb_from_main(retry=True, enable_debug=args.debug, prompt_index=args.pick)
                 shutil.copy2(EXPLOIT_PATH, MSF_DIR)
-                retvalue = run_auto_msf(module=MODULE, rhosts=RHOSTS)
+                retvalue = run_auto_msf(module=MODULE, rhosts=RHOSTS, lhost=LHOST)
                 retrytimes += 1
             if retrytimes >= RETRYTIME:
                 print(f"[-] Exploit generation or execution failed after {RETRYTIME} retries.")

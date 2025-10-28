@@ -22,9 +22,10 @@ ERRORMSG = PROMPTS_DIR / "error_message.txt"
 
 # 其他常數
 MAXIMUM_URLS = 3
-RETRYTIME = 3
+RETRYTIME = 2
 TARGET_CVES = ["2020-25213", "2024-5932", "2025-3102", "2020-12800"]
 RHOSTS = "192.168.1.114"
+LHOST = "192.168.1.115"
 MODULE = "auto_generated_exploit"
 
 # 生成 exploit 的目錄與檔名
