@@ -309,11 +309,11 @@ def run_auto_msf(module, rhosts, timeout=120):
         return 0
     else:
         print(f"[FAILURE] exploit did not produce a usable session. status={status}")
-        save_error_artifacts(start_dt, end_dt, buf, commands_sent)
+        save_error_artifacts(start_dt, end_dt, console_output, commands_sent)
         return 4
 
 
-def save_error_artifacts(start_dt, end_dt, buf, commands_sent):
+def save_error_artifacts(start_dt, end_dt, console_output, commands_sent):
     """
     將錯誤相關的 artifact 一次寫入檔案：
       - start / end 時間
@@ -337,7 +337,7 @@ def save_error_artifacts(start_dt, end_dt, buf, commands_sent):
                 fo.write("[no commands recorded]\n")
 
             fo.write("\n# ===== console captured output (stdout/stderr) =====\n")
-            fo.write(buf.getvalue() + "\n")
+            fo.write(console_output + "\n")
 
             fo.write("\n# ===== framework.log slice =====\n")
             if log_lines:

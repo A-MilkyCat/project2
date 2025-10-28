@@ -3,9 +3,11 @@ import argparse
 import json
 from pathlib import Path
 import sys
+import shutil
 
-from config import OUTPUT_JSON, NEXT_URL_TXT
+from config import OUTPUT_JSON, NEXT_URL_TXT, MODULE, RHOSTS, RETRYTIME, EXPLOIT_PATH, MSF_DIR
 from modules.exploit_generator import exec_genrb_from_main
+from modules.auto_msf import run_auto_msf
 
 def main():
     parser = argparse.ArgumentParser(description="Analyze output.json for specific CVEs and generate exploit.rb if found")
@@ -48,6 +50,16 @@ def main():
                 print(f"Wrote next urls to {NEXT_URL_TXT}")
             # 呼叫 genRb 流程（在 package 內）
             exec_genrb_from_main(retry=args.retry, enable_debug=args.debug, prompt_index=args.pick)
+            retrytimes = 0
+            shutil.copy2(EXPLOIT_PATH, MSF_DIR)
+            retvalue = run_auto_msf(module=MODULE, rhosts=RHOSTS)
+            while retvalue != 0 or retrytimes < RETRYTIME:
+                exec_genrb_from_main(retry=True, enable_debug=args.debug, prompt_index=args.pick)
+                shutil.copy2(EXPLOIT_PATH, MSF_DIR)
+                retvalue = run_auto_msf(module=MODULE, rhosts=RHOSTS)
+                retrytimes += 1
+            if retrytimes >= RETRYTIME:
+                print(f"[-] Exploit generation or execution failed after {RETRYTIME} retries.")
             break
     else:
         print("No target CVE found in output.json")
