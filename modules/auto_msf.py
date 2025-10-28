@@ -132,47 +132,65 @@ def run_and_verify(child, total_timeout=60):
     except pexpect.EOF:
         return {"status": "eof", "detail": None}
 
-    # 直接進到 meterpreter prompt
+    # 1) 直接進到 meterpreter prompt
     if idx == 0:
-        # 選擇 background 回 msf
-        child.sendline("background")
-        try:
-            child.expect(MSF_PROMPT_RE, timeout=10)
-        except Exception:
-            pass
-        # 檢查 sessions list
-        child.sendline("sessions -l")
-        child.expect(MSF_PROMPT_RE, timeout=10)
-        sessions_out = child.before
-        return {"status": "ok", "method": "meterpreter_prompt", "sessions_output": sessions_out}
+        # 嘗試 background，最多重試幾次以確保回到 msf prompt
+        for attempt in range(3):
+            child.sendline("background")
+            try:
+                child.expect(MSF_PROMPT_RE, timeout=8)  # 等待回到 msf prompt
+                # 成功回到 msf：檢查 sessions
+                child.sendline("sessions -l")
+                child.expect(MSF_PROMPT_RE, timeout=10)
+                sessions_out = child.before
+                return {"status": "ok", "method": "meterpreter_prompt", "sessions_output": sessions_out}
+            except pexpect.TIMEOUT:
+                # 仍停在 meterpreter，稍等再試
+                time.sleep(1)
+                continue
+            except pexpect.EOF:
+                return {"status": "eof", "detail": None}
 
-    # 捕捉到 opened 訊息
+        # 反覆 background 仍沒回到 msf prompt：把目前輸出回傳為 maybe（避免直接當作失敗）
+        return {"status": "maybe", "method": "meterpreter_prompt_no_bg", "detail": child.before}
+
+    # 2) 捕捉到 opened 訊息（非同步 background 情形）
     if idx == 1:
         session_id = child.match.group(1)
-        # 等短暫時間，看是否會切換 prompt
+        # 看短暫時間內是否會切換 prompt（不必強求）
         try:
-            # 等 3 秒看看是否會切換到 meterpreter prompt
-            j = child.expect([METERPRETER_PROMPT_RE, MSF_PROMPT_RE], timeout=3)
+            _ = child.expect([METERPRETER_PROMPT_RE, MSF_PROMPT_RE], timeout=3)
         except Exception:
-            j = None
+            pass
 
-        # 無論 prompt 有無改變，都去檢查 sessions -l
+        # 不管 prompt 為何，都去檢查 sessions -l（需先確保是 msf prompt）
+        # 如果目前在 meterpreter，先 background（短力嘗試）
+        try:
+            child.sendline("background")
+            child.expect(MSF_PROMPT_RE, timeout=8)
+        except Exception:
+            # 若不能回到 msf，稍後再檢查 sessions asynchronously
+            pass
+
         child.sendline("sessions -l")
-        child.expect(MSF_PROMPT_RE, timeout=10)
-        sessions_out = child.before
-        # 檢查 sessions -l 輸出是否含有該 session id
+        try:
+            child.expect(MSF_PROMPT_RE, timeout=10)
+            sessions_out = child.before
+        except Exception:
+            sessions_out = ""
+
         if re.search(rf"\b{re.escape(session_id)}\b", sessions_out):
             return {"status": "ok", "method": "session_opened", "session": session_id, "sessions_output": sessions_out}
         else:
             return {"status": "maybe", "method": "opened_but_not_in_list", "session": session_id, "sessions_output": sessions_out}
 
-    # 直接回到 msf prompt
+    # 3) 直接回到 msf prompt（沒有 opened 訊息）
     if idx == 2:
         # 再短暫等待可能的 asynchronous opened 訊息
         try:
             k = child.expect([SESSION_OPENED_RE], timeout=10)
             session_id = child.match.group(1)
-            # 再確認 sessions -l
+            # 確認 sessions -l
             child.sendline("sessions -l")
             child.expect(MSF_PROMPT_RE, timeout=10)
             sessions_out = child.before
@@ -181,8 +199,8 @@ def run_and_verify(child, total_timeout=60):
             else:
                 return {"status": "maybe", "method": "opened_after_prompt_but_not_in_list", "session": session_id, "sessions_output": sessions_out}
         except pexpect.TIMEOUT:
-            # 真沒有 session
             return {"status": "no_session", "detail": child.before}
+
 
 
 def run_auto_msf(module, rhosts, timeout=120):
