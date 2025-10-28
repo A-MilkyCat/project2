@@ -60,6 +60,8 @@ def main():
                 retrytimes += 1
             if retrytimes >= RETRYTIME:
                 print(f"[-] Exploit generation or execution failed after {RETRYTIME} retries.")
+            else:
+                print(f"[+] Exploit executed successfully!")
             break
     else:
         print("No target CVE found in output.json")

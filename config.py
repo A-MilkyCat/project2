@@ -6,7 +6,7 @@ ROOT = Path(__file__).resolve().parent
 # I/O 路徑（放在 data/）
 DATA_DIR = ROOT / "data"
 PROMPTS_DIR = ROOT / "prompts"
-MSF_DIR = Path.home() / "msf4" / "module" / "exploit"
+MSF_DIR = Path.home() / ".msf4" / "module" / "exploit"
 DATA_DIR.mkdir(exist_ok=True)
 PROMPTS_DIR.mkdir(exist_ok=True)
 MSF_DIR.mkdir(parents=True, exist_ok=True)
