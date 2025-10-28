@@ -33,7 +33,7 @@ DEFAULT_MODULE = "auxiliary/scanner/ssh/ssh_version"
 DEFAULT_RHOSTS = "192.168.1.114"
 PROMPT_REGEX = r"msf.*>\s*$"
 LOG_PATH = os.path.expanduser("~/.msf4/logs/framework.log")
-OUTPUT_SAVE_PATH = os.path.join("..", "data", "error_message.txt")
+OUTPUT_SAVE_PATH = os.path.join("data", "error_message.txt")
 
 
 def ensure_output_dir(path):
@@ -148,6 +148,10 @@ def run_auto_msf(module, rhosts, timeout=120):
         return 3
 
     try:
+        print(f"[*] reload all")
+        child.sendline(f"reload_all")
+        child.expect(re.compile(PROMPT_REGEX))
+
         print(f"[*] using module: {module}")
         child.sendline(f"use {module}")
         child.expect(re.compile(PROMPT_REGEX))
