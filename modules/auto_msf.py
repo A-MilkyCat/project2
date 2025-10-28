@@ -1,92 +1,227 @@
 #!/usr/bin/env python3
-# modules/auto_msf.py
 """
-自動化啟動 msfconsole、use module、set RHOSTS、print show options
-改良版：更寬鬆的 prompt regex、較長 timeout、並把 pexpect 的原始輸出印出來以利 debug
-請在 Linux/macOS 上執行並在有授權的環境測試。
+auto_msf.py
+
+功能：
+- 在啟動並互動 msfconsole 前記錄開始時間（本機時區）
+- 使用 pexpect 啟動 msfconsole，use 指定 module，set RHOSTS
+- 執行 show options 並安全退出
+- 在結束時記錄結束時間
+- 若在 pexpect capture 的 console 輸出中**沒有**出現 "Meterpreter session 1 opened"，
+  則從 ~/.msf4/logs/framework.log 取出介於開始/結束時間之間的 log 行，並存到 ../data/error_message.txt
+
+注意：請在有授權的測試環境執行。僅支援類 Unix（Linux / macOS）環境，需安裝 pexpect。
+
+用法：
+    python3 auto_msf.py [module] [rhosts]
+
+預設 module = auxiliary/scanner/ssh/ssh_version
+預設 rhosts = 192.168.1.114
 """
 
-import pexpect
+import os
 import sys
 import time
 import re
+from datetime import datetime
+from zoneinfo import ZoneInfo
+import pexpect
+import io
 
-# 比較寬鬆的 prompt regex：匹配如 "msf >"、"msf > "、或帶些顏色字元的情況
+# 可調整的參數
+DEFAULT_MODULE = "auxiliary/scanner/ssh/ssh_version"
+DEFAULT_RHOSTS = "192.168.1.114"
 PROMPT_REGEX = r"msf.*>\s*$"
+LOG_PATH = os.path.expanduser("~/.msf4/logs/framework.log")
+OUTPUT_SAVE_PATH = os.path.join("..", "data", "error_message.txt")
 
-def run_auto_msf(module="auxiliary/scanner/ssh/ssh_version", rhosts="192.168.1.114", timeout=120):
+
+def ensure_output_dir(path):
+    d = os.path.dirname(path)
+    if d and not os.path.exists(d):
+        os.makedirs(d, exist_ok=True)
+
+
+class Tee:
+    """簡單的 tee 實作，把寫入內容同時傳到一個 buffer 與 stdout"""
+
+    def __init__(self, buffer, stream=None):
+        self.buffer = buffer
+        self.stream = stream or sys.stdout
+
+    def write(self, data):
+        try:
+            self.buffer.write(data)
+        except Exception:
+            pass
+        try:
+            self.stream.write(data)
+        except Exception:
+            pass
+
+    def flush(self):
+        try:
+            self.buffer.flush()
+        except Exception:
+            pass
+        try:
+            self.stream.flush()
+        except Exception:
+            pass
+
+
+def parse_log_timestamp(line):
+    """嘗試從一行 log 解析時間戳，回傳 datetime 或 None。
+    支援格式：[MM/DD/YYYY HH:MM:SS] ...
+    """
+    m = re.search(r"\[(\d{1,2}/\d{1,2}/\d{4} \d{2}:\d{2}:\d{2})\]", line)
+    if not m:
+        return None
+    ts = m.group(1)
     try:
-        print("[*] 啟動 msfconsole...")
-        # spawn 時不使用 shell 讓行為較一致
-        child = pexpect.spawn("msfconsole", ["-q"], encoding="utf-8", timeout=timeout)
-        # 把 pexpect 收到的原始輸出也輸出到 stdout（方便 debug）
-        child.logfile = sys.stdout
-        # 少量延遲（pexpect 在 sendline 前的 delay）
-        child.delaybeforesend = 0.05
+        dt = datetime.strptime(ts, "%m/%d/%Y %H:%M:%S")
+        # 解析出的時間視為本機時區（與 msf/process 相同）
+        return dt
+    except Exception:
+        return None
+
+
+def extract_log_range(log_path, start_dt, end_dt):
+    """從 log_path 中取出時間落在 start_dt..end_dt（含）的行。
+    start_dt 和 end_dt 是 naive datetime（系統本地時間）或 timezone-aware；此函式會比對 naive。"""
+    if not os.path.exists(log_path):
+        return []
+
+    out_lines = []
+    try:
+        with open(log_path, "r", encoding="utf-8", errors="ignore") as f:
+            for line in f:
+                ts = parse_log_timestamp(line)
+                if ts is None:
+                    # 若該行沒有 timestamp，若已經在區間內就保留（處理多行訊息被換行的情況）
+                    if out_lines and 'timestamp_last' in locals() and timestamp_last is not None:
+                        if timestamp_last >= start_dt and timestamp_last <= end_dt:
+                            out_lines.append(line)
+                    continue
+                timestamp_last = ts
+                # 比對（將 start/end 與 ts 視為 naive 本地時間）
+                if ts >= start_dt and ts <= end_dt:
+                    out_lines.append(line)
     except Exception as e:
-        print("[!] 無法 spawn msfconsole，錯誤：", e)
+        out_lines.append(f"[error reading log file: {e}]\n")
+    return out_lines
+
+
+def run_auto_msf(module, rhosts, timeout=120):
+    # 記錄開始時間（本機時區 naive）
+    start_dt = datetime.now()
+    print(f"[+] start time: {start_dt.strftime('%Y-%m-%d %H:%M:%S')}")
+
+    # 準備 pexpect，並同時把輸出記錄到 buffer
+    buf = io.StringIO()
+    tee = Tee(buf, sys.stdout)
+
+    try:
+        print("[*] spawning msfconsole...")
+        child = pexpect.spawn("msfconsole", ["-q"], encoding="utf-8", timeout=timeout)
+        child.delaybeforesend = 0.05
+        child.logfile = tee
+    except Exception as e:
+        print(f"[!] failed to spawn msfconsole: {e}")
         return 1
 
     try:
-        # 使用 regex 等待 prompt。多給一些時間，不要用 exact match。
-        print("[*] 等待 msf prompt (regex):", PROMPT_REGEX)
-        # 先嘗試更寬鬆匹配多次，處理 banner 輸出過長的情況
         child.expect(re.compile(PROMPT_REGEX), timeout=timeout)
     except pexpect.exceptions.TIMEOUT:
-        print("[!] 等待 msf prompt 超時，請檢查：")
-        print("    1) msfconsole 是否能在此使用者/環境啟動 (試在同一 shell 執行 `msfconsole -q`)。")
-        print("    2) PATH 是否正確 (腳本內的 msfconsole 路徑是否同 manual 相同)。")
-        print("    3) 若 msf 輸出大量 banner/更新訊息，請增加 timeout。")
-        # child.logfile 已經把輸出印出來，這邊再關閉
+        print("[!] timeout waiting for prompt")
         child.close(force=True)
+        end_dt = datetime.now()
+        print(f"[+] end time: {end_dt.strftime('%Y-%m-%d %H:%M:%S')}")
+        # 如果無法取得 prompt，也把該時間區間的 log 存下
+        save_log_slice_if_no_meterpreter(start_dt, end_dt, buf)
         return 2
     except pexpect.exceptions.EOF:
-        print("[!] msfconsole 提早結束 (EOF)。可能是啟動錯誤或二進位無法執行。")
+        print("[!] msfconsole exited unexpectedly (EOF)")
         child.close(force=True)
+        end_dt = datetime.now()
+        save_log_slice_if_no_meterpreter(start_dt, end_dt, buf)
         return 3
 
     try:
-        print("[*] 使用 module:", module)
+        print(f"[*] using module: {module}")
         child.sendline(f"use {module}")
         child.expect(re.compile(PROMPT_REGEX))
-        # child.before 包含 use 指令的回傳（已被 logfile 印過，但這裡仍可存取）
-        print("--- use output (above) ---")
 
-        print(f"[*] 設定 RHOSTS = {rhosts}")
+        print(f"[*] set RHOSTS = {rhosts}")
         child.sendline(f"set RHOSTS {rhosts}")
         child.expect(re.compile(PROMPT_REGEX))
-        print("--- set output (above) ---")
 
-        print("[*] 顯示 options 以確認設定")
+        print("[*] show options")
         child.sendline("show options")
         child.expect(re.compile(PROMPT_REGEX))
-        # 這時 child.before 包含 show options 的輸出
-        print("----- show options output (captured) -----")
-        print(child.before.strip())
-        print("----- end -----")
+
+        # 若需要，你可以在此加入其他指令（例如 run 或 check），但本範例避免執行 exploit
 
     except pexpect.exceptions.TIMEOUT:
-        print("[!] 與 msfconsole 互動時發生 timeout（某步驟花太久）")
-        child.close(force=True)
-        return 4
+        print("[!] timeout during interaction")
     except pexpect.exceptions.EOF:
-        print("[!] msfconsole 提早終止（EOF） during interaction")
-        child.close(force=True)
-        return 5
+        print("[!] msfconsole EOF during interaction")
     finally:
-        # 嘗試乾淨結束
+        # 嘗試結束
         try:
             child.sendline("exit")
         except Exception:
             pass
-        child.close()
+        # 等待 child 真正結束
+        try:
+            child.close()
+        except Exception:
+            pass
 
-    print("[*] 完成")
-    return 0
+    # 記錄結束時間
+    end_dt = datetime.now()
+    print(f"[+] end time: {end_dt.strftime('%Y-%m-%d %H:%M:%S')}")
+
+    # 取得 pexpect 捕獲的 console 輸出
+    console_output = buf.getvalue()
+
+    # 判斷是否出現 "Meterpreter session 1 opened"
+    if "Meterpreter session 1 opened" in console_output:
+        print("[+] found Meterpreter session message in console output")
+        return 0
+    else:
+        print("[-] no Meterpreter session message in console output; saving relevant log slice...")
+        save_log_slice_if_no_meterpreter(start_dt, end_dt, buf)
+        return 4
+
+
+def save_log_slice_if_no_meterpreter(start_dt, end_dt, buf):
+    # 讀取並過濾 framework.log
+    # 將 start_dt/end_dt 轉為同樣格式的 naive datetime（log 是 MM/DD/YYYY ...）
+    # 這裡我們假設 log 的 timestamp 與系統本地時間一致
+
+    # 讀 log 並取出時間範圍內的行
+    log_lines = extract_log_range(LOG_PATH, start_dt, end_dt)
+
+    ensure_output_dir(OUTPUT_SAVE_PATH)
+    try:
+        with open(OUTPUT_SAVE_PATH, "w", encoding="utf-8") as fo:
+            fo.write(f"# start {start_dt.isoformat()}\n")
+            fo.write(f"# end   {end_dt.isoformat()}\n")
+            fo.write("# console captured output:\n")
+            fo.write(buf.getvalue())
+            fo.write("\n# framework.log slice:\n")
+            if log_lines:
+                fo.writelines(log_lines)
+            else:
+                fo.write("[no log lines found in the selected interval or log file missing]\n")
+        print(f"[+] saved log slice to {OUTPUT_SAVE_PATH}")
+    except Exception as e:
+        print(f"[!] failed to save log slice: {e}")
+
 
 if __name__ == "__main__":
-    # 可由 CLI 傳 module 與 rhosts
-    module_arg = sys.argv[1] if len(sys.argv) > 1 else "auxiliary/scanner/ssh/ssh_version"
-    rhosts_arg = sys.argv[2] if len(sys.argv) > 2 else "192.168.1.114"
-    rc = run_auto_msf(module=module_arg, rhosts=rhosts_arg, timeout=120)
+    module_arg = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_MODULE
+    rhosts_arg = sys.argv[2] if len(sys.argv) > 2 else DEFAULT_RHOSTS
+    rc = run_auto_msf(module_arg, rhosts_arg, timeout=120)
     sys.exit(rc)
