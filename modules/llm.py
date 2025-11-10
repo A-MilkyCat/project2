@@ -1,6 +1,8 @@
 from g4f.client import Client
 import os
+import requests
 
+url = "http://192.168.1.116:1337/v1/chat/completions"
 def generate_response(prompt: str, model: str = "gemini-2.0-flash", web_search: bool = False) -> str:
     if model == "gemini-2.0-flash":
         GEMINI_API_KEY = os.getenv("GEMINI_KEY")
@@ -17,11 +19,21 @@ def generate_response(prompt: str, model: str = "gemini-2.0-flash", web_search: 
         response = model.generate_content(prompt)
         return response.text
     
-    client = Client()
-    response = client.chat.completions.create(
-        model=model, # Try "gpt-4o", "deepseek-v3", etc.
-        messages=[{"role": "user", "content": prompt}],
-        web_search=web_search
-    )
-    return response.choices[0].message.content
+    body = {
+        "model": model,
+        "stream": False,
+        "messages": [{"role": "user", "content": prompt}],
+        # g4f docker API 可能沒有 web_search 參數，如果你的版本支援可加
+        # "web_search": web_search  
+    }
+
+    response = requests.post(url, json=body)
+    response.raise_for_status()  # 若 HTTP 錯誤會丟例外
+
+    choices = response.json().get("choices", [])
+    if not choices:
+        return ""  # 沒有回覆就回空字串
+
+    # 取第一個 choice 的 content
+    return choices[0].get("message", {}).get("content", "")
 
