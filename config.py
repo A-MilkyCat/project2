@@ -15,6 +15,7 @@ OUTPUT_JSON = DATA_DIR / "output.json"
 NEXT_URL_TXT = DATA_DIR / "next_url.txt"
 OUTPUT_HTML = DATA_DIR / "output.html"
 OUTPUT_MD = DATA_DIR / "output.md"
+OUTPUT_PROMPT = DATA_DIR / "output_prompt.txt"
 
 INITPROMPT = PROMPTS_DIR / "init_prompt.txt"
 RETRYPROMPT = PROMPTS_DIR / "retry_prompt.txt"
