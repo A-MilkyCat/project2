@@ -58,7 +58,8 @@ def main():
                 exec_genrb_from_main(retry=True, enable_debug=args.debug, prompt_index=args.pick, model=args.model)
                 shutil.copy2(EXPLOIT_PATH, MSF_DIR)
                 retvalue = run_auto_msf(module=MODULE, rhosts=RHOSTS, lhost=LHOST)
-                retrytimes += 1
+                if retvalue != 0 :
+                    retrytimes += 1
             if retrytimes >= RETRYTIME:
                 print(f"[-] Exploit generation or execution failed after {RETRYTIME} retries.")
             else:
