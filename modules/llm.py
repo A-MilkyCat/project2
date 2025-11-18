@@ -20,8 +20,11 @@ def generate_response(prompt: str, model: str = "gemini-2.0-flash", web_search: 
         return response.text
     
     body = {
+        "provider": "HuggingFaceAPI",
         "model": model,
-        "stream": False,
+        # "stream": False,
+        "api_key": os.getenv("HUGGINGFACE_API_KEY"),     # 換成你的 HuggingFace Token
+
         "messages": [{"role": "user", "content": prompt}],
         # g4f docker API 可能沒有 web_search 參數，如果你的版本支援可加
         # "web_search": web_search  
