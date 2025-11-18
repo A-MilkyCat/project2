@@ -11,13 +11,15 @@ from modules.auto_msf import run_auto_msf
 
 def main():
     parser = argparse.ArgumentParser(description="Analyze output.json for specific CVEs and generate exploit.rb if found")
-    parser.add_argument("--retry", action="store_true", help="Whether this is a retry attempt")
-    parser.add_argument("--debug", action="store_true", help="Enable debug mode")
-    parser.add_argument("-p", "--pick", type=int, metavar="N", help="Select an index number (1-based).", required=True)
-    parser.add_argument("--target-cve", action="append", help="Target CVE(s) to search for (can specify multiple).", default=["2020-25213"])
+    parser.add_argument("-r", "--retry", type=int, type=int, default=0, help="Whether this is a retry attempt")
+    parser.add_argument("-d", "--debug", action="store_true", help="Enable debug mode")
+    parser.add_argument("-p", "--pick", default="1",type=int, metavar="N", help="Select an index number (1-based).", required=True)
+    parser.add_argument("-c", "--target-cve", action="append", help="Target CVE(s) to search for (can specify multiple).", default=["2020-25213"])
     parser.add_argument("-m", "--model", nargs="?", default="gemini-2.0-flash", help="LLM model to use for exploit generation.")
     #["2020-25213", "2024-5932", "2025-3102", "2020-12800"]
     args = parser.parse_args()
+    if args.retry > 0:
+        RETRYTIME = args.retry
 
     if not OUTPUT_JSON.exists():
         print(f"Error: {OUTPUT_JSON} not found.")
