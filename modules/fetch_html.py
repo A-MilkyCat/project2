@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Optional
 import time
 
-def fetch_html(url: str, html_path: Path, debug: bool = False, retries: int = 3, timeout_ms: int = 60000, wait_after_ms: int = 500) -> Optional[str]:
+def fetch_html(url: str, html_path: Path, debug: bool = False, retries: int = 1, timeout_ms: int = 60000, wait_after_ms: int = 500) -> Optional[str]:
     """
     使用 Playwright 抓取 url 的完整 HTML，等待 networkidle。
     回傳 HTML 字串或 None（若全部失敗）。
