@@ -11,7 +11,7 @@ from modules.auto_msf import run_auto_msf
 
 def main():
     parser = argparse.ArgumentParser(description="Analyze output.json for specific CVEs and generate exploit.rb if found")
-    parser.add_argument("-r", "--retrytime", type=int, default=2, help="Whether this is a retry attempt")
+    parser.add_argument("-r", "--retry", type=int, default=2, help="Whether this is a retry attempt")
     parser.add_argument("-d", "--debug", action="store_true", help="Enable debug mode")
     parser.add_argument("-p", "--pick", default=1,type=int, metavar="N", help="Select an index number (1-based).")
     parser.add_argument("-c", "--target-cve", action="append", help="Target CVE(s) to search for (can specify multiple).")
