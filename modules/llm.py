@@ -21,16 +21,14 @@ def generate_response(prompt: str, model: str = "gemini-2.0-flash", web_search: 
     
     local_model = ["llama3.3:latest", "gemma3:4b", "gemma2:9b", "phi3:latest", "gemma3:27b", "gpt-oss:latest", "llama3.3:70b"]
     if model in local_model:
-        def ask(prompt, model="gemma3:4b"):
-            url = "http://localhost:11434/api/generate"
-            payload = {
-                "model": model,
-                "prompt": prompt,
-                "stream": False
-            }
-            response = requests.post(url, json=payload)
-            return response.json().get("response")
-        return ask(prompt, model=model)
+        url = "http://localhost:11434/api/generate"
+        payload = {
+            "model": model,
+            "prompt": prompt,
+            "stream": False
+        }
+        response = requests.post(url, json=payload)
+        return response.json().get("response")
     else:
         body = {
             "provider": "HuggingFaceAPI",
