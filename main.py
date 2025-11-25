@@ -11,7 +11,7 @@ from modules.auto_msf import run_auto_msf
 
 def main():
     parser = argparse.ArgumentParser(description="Analyze output.json for specific CVEs and generate exploit.rb if found")
-    parser.add_argument("-r", "--retry", type=int, default=2, help="Whether this is a retry attempt")
+    parser.add_argument("-r", "--retrytime", type=int, default=2, help="Whether this is a retry attempt")
     parser.add_argument("-d", "--debug", action="store_true", help="Enable debug mode")
     parser.add_argument("-p", "--pick", default=1,type=int, metavar="N", help="Select an index number (1-based).")
     parser.add_argument("-c", "--target-cve", action="append", help="Target CVE(s) to search for (can specify multiple).")
@@ -43,17 +43,16 @@ def main():
     for vuln in vulns:
         if any(cve in vuln["cves"] for cve in args.target_cve):
             print("Found target vuln:", vuln)
-            if not args.retry:
-                # 儲存 next_url.txt（會被 exploit_generator 讀）
-                init_url = None
-                if vuln.get("db_url"):
-                    init_url = "https://wpscan.com/vulnerability/" + vuln['db_url'][0]
-                with NEXT_URL_TXT.open("w", encoding="utf-8") as f:
-                    if init_url:
-                        f.write(init_url + "\n")
-                    for u in vuln.get("urls", []):
-                        f.write(u + "\n")
-                print(f"Wrote next urls to {NEXT_URL_TXT}")
+            # 儲存 next_url.txt（會被 exploit_generator 讀）
+            init_url = None
+            if vuln.get("db_url"):
+                init_url = "https://wpscan.com/vulnerability/" + vuln['db_url'][0]
+            with NEXT_URL_TXT.open("w", encoding="utf-8") as f:
+                if init_url:
+                    f.write(init_url + "\n")
+                for u in vuln.get("urls", []):
+                    f.write(u + "\n")
+            print(f"Wrote next urls to {NEXT_URL_TXT}")
             # 呼叫 genRb 流程（在 package 內）
             exec_genrb_from_main(retry=args.retry, enable_debug=args.debug, prompt_index=args.pick, model=args.model)
             retrytimes = 0
