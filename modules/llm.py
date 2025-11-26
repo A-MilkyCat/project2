@@ -2,7 +2,6 @@ from g4f.client import Client
 import os
 import requests
 
-url = "http://192.168.1.116:1337/v1/chat/completions"
 def generate_response(prompt: str, model: str = "gemini-2.0-flash", web_search: bool = False) -> str:
     if model == "gemini-2.0-flash":
         GEMINI_API_KEY = os.getenv("GEMINI_KEY")
@@ -30,6 +29,7 @@ def generate_response(prompt: str, model: str = "gemini-2.0-flash", web_search: 
         response = requests.post(url, json=payload)
         return response.json().get("response")
     else:
+        url = "http://192.168.1.116:1337/v1/chat/completions"
         body = {
             "provider": "HuggingFaceAPI",
             "model": model,
