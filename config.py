@@ -20,7 +20,7 @@ OUTPUT_PROMPT = DATA_DIR / "output_prompt.txt"
 INITPROMPT = PROMPTS_DIR / "init_prompt.txt"
 RETRYPROMPT = PROMPTS_DIR / "retry_prompt.txt"
 ERRORMSG = PROMPTS_DIR / "error_message.txt"
-ONESHOTPROMPT = PROMPTS_DIR / "one_shot_prompt.txt"
+ONESHOTPROMPT = PROMPTS_DIR / "oneshot_prompt.txt"
 
 # 其他常數
 MAXIMUM_URLS = 3
